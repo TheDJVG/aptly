@@ -207,6 +207,10 @@ func (storage *PublishedStorage) Remove(path string) error {
 		Bucket: aws.String(storage.bucket),
 		Key:    aws.String(filepath.Join(storage.prefix, path)),
 	}
+
+    // Dump the cache to prevent reuse of removed files.
+	storage.pathCache = nil
+
 	_, err := storage.s3.DeleteObject(params)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
@@ -228,6 +232,9 @@ func (storage *PublishedStorage) Remove(path string) error {
 // RemoveDirs removes directory structure under public path
 func (storage *PublishedStorage) RemoveDirs(path string, progress aptly.Progress) error {
 	const page = 1000
+
+    // Dump the cache to prevent reuse of removed files.
+	storage.pathCache = nil
 
 	filelist, _, err := storage.internalFilelist(path, false)
 	if err != nil {
